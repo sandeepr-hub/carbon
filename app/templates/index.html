@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAMPUS CARBON — Universal Campus Carbon Footprint Assessment & Management Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Header Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-200">
+          <i data-lucide="leaf" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-slate-900">CAMPUS <span class="text-emerald-600">CARBON</span></span>
+            <span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">v2.0</span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">Universal Campus Carbon Footprint Assessment & Management Platform</p>
+        </div>
+      </div>
+
+      <!-- Campus & Assessment Selector & Actions -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div class="flex items-center gap-1.5 px-2 py-1">
+            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-600"></i>
+            <select id="campusSelect" class="bg-transparent text-sm font-bold text-slate-800 outline-none cursor-pointer" onchange="onCampusChange()">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+          <div class="h-4 w-px bg-slate-300"></div>
+          <div class="flex items-center gap-1.5 px-2 py-1">
+            <i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i>
+            <select id="assessmentSelect" class="bg-transparent text-sm font-semibold text-slate-700 outline-none cursor-pointer" onchange="onAssessmentChange()">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <button onclick="triggerRecalculation()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-100 transition" title="Run full carbon & reduction calculations">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Recalculate</span>
+        </button>
+
+        <button onclick="openNewCampusModal()" class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+          <span>Create Campus</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Shell -->
+  <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+    
+    <!-- Sidebar Navigation (Campus-Centric) -->
+    <aside class="w-full md:w-64 flex-shrink-0">
+      <nav class="glass-card rounded-2xl p-2.5 flex flex-col gap-1 sticky top-24">
+        <button onclick="switchTab('dashboard')" class="nav-item active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-emerald-600"></i>
+          <span>Dashboard & Summary</span>
+        </button>
+        <button onclick="switchTab('campus-profile')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="campus-profile">
+          <i data-lucide="building-2" class="w-4 h-4 text-emerald-600"></i>
+          <span>Campus & Buildings</span>
+        </button>
+        <button onclick="switchTab('campus-data-entry')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="campus-data-entry">
+          <i data-lucide="clipboard-edit" class="w-4 h-4 text-emerald-600"></i>
+          <span>Campus Data Entry</span>
+        </button>
+        <button onclick="switchTab('population-distribution')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="population-distribution">
+          <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+          <span>Population Distribution</span>
+        </button>
+        <button onclick="switchTab('carbon-accounting')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="carbon-accounting">
+          <i data-lucide="scale" class="w-4 h-4 text-emerald-600"></i>
+          <span>Carbon Accounting</span>
+        </button>
+        <button onclick="switchTab('building-analytics')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="building-analytics">
+          <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+          <span>Building Analytics</span>
+        </button>
+        <button onclick="switchTab('visualizations')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="visualizations">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i>
+          <span>Graphical Insights</span>
+        </button>
+        <button onclick="switchTab('what-if')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="what-if">
+          <i data-lucide="sliders" class="w-4 h-4 text-emerald-600"></i>
+          <span>What-If Simulator</span>
+        </button>
+        <button onclick="switchTab('recommendations')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="recommendations">
+          <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i>
+          <span>Recommendations</span>
+        </button>
+        <button onclick="switchTab('benchmarks')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="benchmarks">
+          <i data-lucide="globe-2" class="w-4 h-4 text-emerald-600"></i>
+          <span>Benchmarking</span>
+        </button>
+        <button onclick="switchTab('factors')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="factors">
+          <i data-lucide="database" class="w-4 h-4 text-emerald-600"></i>
+          <span>Emission Factors</span>
+        </button>
+        <button onclick="switchTab('reports')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="reports">
+          <i data-lucide="file-text" class="w-4 h-4 text-emerald-600"></i>
+          <span>Report Studio</span>
+        </button>
+        <button onclick="switchTab('exchange')" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition text-left text-slate-700 hover:bg-slate-100" data-tab="exchange">
+          <i data-lucide="arrow-down-up" class="w-4 h-4 text-emerald-600"></i>
+          <span>Import / Export</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Dynamic Content Workspace -->
+    <main class="flex-1 min-w-0">
+
+      <!-- ================= 1. TAB: DASHBOARD ================= -->
+      <section id="tab-dashboard" class="tab-content flex flex-col gap-6">
+        
+        <!-- Campus Top Overview Banner -->
+        <div class="glass-card rounded-2xl p-5 flex flex-col gap-4 border-l-4 border-l-emerald-600">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h1 id="dashCampusName" class="text-xl font-black text-slate-900">Loading Campus...</h1>
+                <span id="dashCampusType" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">University / College</span>
+                <span id="dashReportingYear" class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-semibold">2025</span>
+              </div>
+              <p id="dashLocation" class="text-xs text-slate-500 mt-0.5">Bengaluru, Karnataka, India | Standard: GHG Protocol Corporate Standard</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button onclick="switchTab('campus-data-entry')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                <i data-lucide="clipboard-edit" class="w-3.5 h-3.5"></i>
+                <span>Enter Activity Data</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Structured Summary Metrics Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-200 text-xs">
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-500 font-bold block text-[10px] uppercase">Total Campus Area</span>
+              <span id="dashAreaBoth" class="font-extrabold text-slate-900 text-sm">78.50 acres</span>
+              <span id="dashAreaSqm" class="text-[10px] text-slate-500 block">(317,678 m²)</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-500 font-bold block text-[10px] uppercase">Campus Built-up Area</span>
+              <span id="dashBuiltUpAreaBoth" class="font-extrabold text-emerald-800 text-sm">43.18 acres (55%)</span>
+              <span id="dashBuiltUpSqm" class="text-[10px] text-slate-500 block">(174,750 m²)</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-500 font-bold block text-[10px] uppercase">Campus Population</span>
+              <span id="dashTotalPop" class="font-extrabold text-slate-900 text-sm">6,450 Total</span>
+              <span id="dashPopBreakdown" class="text-[10px] text-slate-500 block">6,000 Students | 450 Staff</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-500 font-bold block text-[10px] uppercase">Building Inventory</span>
+              <span id="dashBuildingsCount" class="font-extrabold text-slate-900 text-sm">19 Buildings</span>
+              <span class="text-[10px] text-emerald-700 block font-semibold cursor-pointer hover:underline" onclick="switchTab('campus-profile')">View Building Inventory →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 MAJOR KPI CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          
+          <!-- KPI 1: Gross Carbon Footprint -->
+          <div class="hero-gross rounded-2xl p-5 relative overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-rose-800">1. Gross Footprint</span>
+              <span class="bg-rose-100 text-rose-700 p-1.5 rounded-lg"><i data-lucide="flame" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline gap-1.5">
+                <span id="dashGrossEmissions" class="text-2xl font-black text-rose-900">0.00</span>
+                <span class="text-xs font-bold text-rose-700">tCO2e</span>
+              </div>
+              <p class="text-[10px] text-rose-700 mt-1">Total emissions before deductions</p>
+            </div>
+          </div>
+
+          <!-- KPI 2: Positive Carbon Emissions -->
+          <div class="hero-gross rounded-2xl p-5 relative overflow-hidden shadow-sm flex flex-col justify-between border border-rose-300">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-rose-900">2. Positive Carbon</span>
+              <span class="bg-rose-100 text-rose-800 p-1.5 rounded-lg"><i data-lucide="zap" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline gap-1.5">
+                <span id="dashPositiveEmissions" class="text-2xl font-black text-rose-950">0.00</span>
+                <span class="text-xs font-bold text-rose-800">tCO2e</span>
+              </div>
+              <p class="text-[10px] text-rose-800 mt-1">All emission sources combined</p>
+            </div>
+          </div>
+
+          <!-- KPI 3: Negative Carbon Footprint -->
+          <div class="hero-reduction rounded-2xl p-5 relative overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">3. Negative Carbon</span>
+              <span class="bg-emerald-100 text-emerald-700 p-1.5 rounded-lg"><i data-lucide="shield-check" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline gap-1.5">
+                <span id="dashEligibleReductions" class="text-2xl font-black text-emerald-900">-0.00</span>
+                <span class="text-xs font-bold text-emerald-700">tCO2e</span>
+              </div>
+              <p class="text-[10px] text-emerald-700 mt-1">Avoided emissions & removals</p>
+            </div>
+          </div>
+
+          <!-- KPI 4: Net Carbon Footprint -->
+          <div class="hero-net rounded-2xl p-5 relative overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-800">4. Net Footprint</span>
+              <span class="bg-blue-100 text-blue-700 p-1.5 rounded-lg"><i data-lucide="scale" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline gap-1.5">
+                <span id="dashNetFootprint" class="text-2xl font-black text-blue-900">0.00</span>
+                <span class="text-xs font-bold text-blue-700">tCO2e</span>
+              </div>
+              <p class="text-[10px] text-blue-700 mt-1">Gross − Negative Removals</p>
+            </div>
+          </div>
+
+          <!-- KPI 5: Per Capita Net Footprint -->
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-5 relative overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-900">5. Per Capita</span>
+              <span class="bg-indigo-100 text-indigo-700 p-1.5 rounded-lg"><i data-lucide="user-check" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline gap-1.5">
+                <span id="dashNetPerPerson" class="text-2xl font-black text-indigo-950">0.0000</span>
+                <span class="text-xs font-bold text-indigo-700">t/person</span>
+              </div>
+              <p class="text-[10px] text-indigo-700 mt-1">Net Footprint / Population</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Scope Classification Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="glass-card rounded-xl p-4.5 border-t-4 border-t-amber-500">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase">
+              <span>Scope 1 (Direct)</span>
+              <i data-lucide="fuel" class="w-4 h-4 text-amber-500"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span id="dashScope1" class="text-2xl font-bold text-slate-800">0.00</span>
+              <span class="text-xs font-medium text-slate-500">tCO2e</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">DG diesel, campus fleet fuels, kitchen LPG, refrigerants</p>
+          </div>
+
+          <div class="glass-card rounded-xl p-4.5 border-t-4 border-t-indigo-500">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase">
+              <span>Scope 2 (Electricity)</span>
+              <i data-lucide="zap" class="w-4 h-4 text-indigo-500"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span id="dashScope2" class="text-2xl font-bold text-slate-800">0.00</span>
+              <span class="text-xs font-medium text-slate-500">tCO2e</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Purchased grid electricity & EV charging</p>
+          </div>
+
+          <div class="glass-card rounded-xl p-4.5 border-t-4 border-t-purple-500">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase">
+              <span>Scope 3 (Indirect)</span>
+              <i data-lucide="bus" class="w-4 h-4 text-purple-500"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span id="dashScope3" class="text-2xl font-bold text-slate-800">0.00</span>
+              <span class="text-xs font-medium text-slate-500">tCO2e</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Commuting transit, solid waste, freshwater & wastewater STP</p>
+          </div>
+        </div>
+
+        <!-- Area Intensity & Key Performance Indicators -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-xs text-slate-500 font-medium">Gross Carbon / m²</p>
+            <p id="dashGrossPerArea" class="text-lg font-bold text-slate-800 mt-1">0.00</p>
+            <p class="text-[10px] text-slate-400">kgCO2e / m² built-up</p>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-xs text-slate-500 font-medium">Net Carbon / m²</p>
+            <p id="dashNetPerArea" class="text-lg font-bold text-emerald-700 mt-1">0.00</p>
+            <p class="text-[10px] text-slate-400">kgCO2e / m² built-up</p>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-xs text-slate-500 font-medium">Renewable Energy Share</p>
+            <p id="dashRenewablePct" class="text-lg font-bold text-emerald-600 mt-1">0.0%</p>
+            <p class="text-[10px] text-slate-400">Solar clean generation</p>
+          </div>
+          <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-xs text-slate-500 font-medium">Waste Diversion Rate</p>
+            <p id="dashWasteDivRate" class="text-lg font-bold text-blue-600 mt-1">0.0%</p>
+            <p class="text-[10px] text-slate-400">Composted & Recycled</p>
+          </div>
+        </div>
+
+        <!-- Charts: Gross vs Net Flow & Emissions Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-600"></i>
+                Positive vs Negative vs Net Carbon Flow
+              </h3>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="waterfallChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i>
+                Emissions Breakdown by Activity Category
+              </h3>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="scopeDonutChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= 2. TAB: CAMPUS & BUILDINGS (INVENTORY) ================= -->
+      <section id="tab-campus-profile" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Campus Geometry & Building Inventory</h2>
+              <p class="text-xs text-slate-500">Defined during campus creation. The number of building records is strictly fixed to the configured campus count.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="bldCountPill" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl">19 Buildings Configured</span>
+            </div>
+          </div>
+
+          <!-- Built-up Area Validation Card -->
+          <div id="builtUpAreaReconciliationCard" class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <span class="font-bold text-slate-700">Built-up Area Reconciliation:</span>
+              <div class="flex items-center gap-3 mt-1">
+                <span>Calculated Campus Built-up Area: <b id="areaRecalcTarget" class="text-slate-900">174,750 m²</b></span>
+                <span class="text-slate-300">|</span>
+                <span>Total Building Area: <b id="areaRecalcActual" class="text-slate-900">174,750 m²</b></span>
+              </div>
+            </div>
+            <div id="areaWarningBadge" class="hidden bg-amber-100 text-amber-900 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+              <span>Warning: Sum of Building Areas exceeds Campus Calculated Built-up Area!</span>
+            </div>
+          </div>
+
+          <!-- Buildings Inventory Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600 border border-slate-200 rounded-xl overflow-hidden">
+              <thead class="bg-slate-100 text-xs font-bold text-slate-700 uppercase">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Building Name</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Floors</th>
+                  <th class="p-3">Built-up Area (m²)</th>
+                  <th class="p-3">Allocated Population</th>
+                  <th class="p-3">Description</th>
+                </tr>
+              </thead>
+              <tbody id="buildingsTableBody" class="divide-y divide-slate-200 bg-white">
+                <!-- Dynamically filled -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. TAB: CAMPUS DATA ENTRY (PRIMARY) ================= -->
+      <section id="tab-campus-data-entry" class="tab-content hidden flex flex-col gap-6">
+        
+        <!-- Campus Banner Header -->
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-700">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase">Primary Data Entry</span>
+              <h2 id="entryCampusTitle" class="text-base font-extrabold text-white">Campus: Christ University – Kengeri Campus</h2>
+              <span id="entryYearBadge" class="bg-slate-800 text-emerald-400 text-xs font-bold px-2 py-0.5 rounded border border-slate-700">Assessment Year: 2025</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">Enter annual activity data for the entire campus. Building-level data is required only for population distribution and optional building-specific activities.</p>
+          </div>
+          <button onclick="triggerRecalculation()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow whitespace-nowrap">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Recalculate Carbon Footprint</span>
+          </button>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6">
+          
+          <!-- Positive & Negative Stream Selectors -->
+          <div class="mb-4">
+            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block mb-2">Operational Activity Streams (Whole Campus):</span>
+            <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3" id="campusActivitySubTabs">
+              <!-- Positive Categories -->
+              <button onclick="switchCampusActTab('cact-electricity')" class="cact-tab active bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-200" data-cact="cact-electricity">⚡ Electricity</button>
+              <button onclick="switchCampusActTab('cact-fuel')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-fuel">⛽ Fuel</button>
+              <button onclick="switchCampusActTab('cact-waste')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-waste">🗑️ Solid Waste</button>
+              <button onclick="switchCampusActTab('cact-water')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-water">💧 Water & STP</button>
+              <button onclick="switchCampusActTab('cact-transport')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-transport">🚗 Transportation / Fleet</button>
+              <button onclick="switchCampusActTab('cact-canteen')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-canteen">🍽️ Canteen / Kitchen</button>
+              <button onclick="switchCampusActTab('cact-industry')" class="cact-tab bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold" data-cact="cact-industry">🏭 Industrial / Process</button>
+
+              <!-- Negative Categories (Rendered Conditionally based on Checklist) -->
+              <button id="tabBtnSolar" onclick="switchCampusActTab('cact-solar')" class="cact-tab bg-slate-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 hidden" data-cact="cact-solar">☀️ Solar Plant</button>
+              <button id="tabBtnWaterCons" onclick="switchCampusActTab('cact-water-cons')" class="cact-tab bg-slate-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 hidden" data-cact="cact-water-cons">💧 Water Conservation</button>
+              <button id="tabBtnWaterBodies" onclick="switchCampusActTab('cact-water-bodies')" class="cact-tab bg-slate-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 hidden" data-cact="cact-water-bodies">🌊 Water Bodies</button>
+              <button id="tabBtnAnimals" onclick="switchCampusActTab('cact-animals')" class="cact-tab bg-slate-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 hidden" data-cact="cact-animals">🐾 Animals / Livestock</button>
+              <button id="tabBtnGreenery" onclick="switchCampusActTab('cact-greenery')" class="cact-tab bg-slate-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 hidden" data-cact="cact-greenery">🌳 Gardening / Greenery</button>
+            </div>
+          </div>
+
+          <!-- STREAM 1: ELECTRICITY -->
+          <div id="cact-electricity" class="cact-content">
+            <form id="formCampusElectricity" onsubmit="submitElectricityRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Electricity Source *</label>
+                <select id="elecSourceType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-emerald-500">
+                  <option value="Grid Electricity">Grid Electricity (Scope 2)</option>
+                  <option value="Diesel Generator Electricity">Diesel Generator Electricity (Scope 1)</option>
+                  <option value="Other Electricity Source">Other Electricity Source</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Quantity *</label>
+                <input type="number" step="any" id="elecQuantity" required min="0" placeholder="e.g. 1250000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-emerald-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Unit *</label>
+                <select id="elecUnit" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none focus:border-emerald-500">
+                  <option value="kWh">kWh</option>
+                  <option value="MWh">MWh</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Period</label>
+                <select id="elecPeriod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Annual">Annual Total</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Quality</label>
+                <select id="elecQuality" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Electricity Bill">Electricity Bill / Invoice</option>
+                  <option value="Meter reading">Meter reading</option>
+                  <option value="Measured">Measured</option>
+                  <option value="Estimated">Estimated</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Electricity Record</button>
+              </div>
+            </form>
+            <div id="electricityRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- STREAM 2: FUEL -->
+          <div id="cact-fuel" class="cact-content hidden">
+            <form id="formCampusFuel" onsubmit="submitFuelRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Fuel Type *</label>
+                <select id="fuelType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="LPG">LPG</option>
+                  <option value="CNG">CNG</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Quantity *</label>
+                <input type="number" step="any" id="fuelQuantity" required min="0" placeholder="e.g. 18000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Unit *</label>
+                <select id="fuelUnit" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Liters">Liters</option>
+                  <option value="kg">kg</option>
+                  <option value="m3">m3</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Purpose *</label>
+                <select id="fuelPurpose" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="DG Generator">DG Generator (Backup Power)</option>
+                  <option value="College Bus">College Bus / Transit</option>
+                  <option value="Campus Vehicle">Campus Vehicle</option>
+                  <option value="Kitchen">Kitchen / Cooking</option>
+                  <option value="Other">Other Operational</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Quality</label>
+                <select id="fuelQuality" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Bill/invoice">Fuel Invoices / Receipts</option>
+                  <option value="Logbook">Vehicle / Generator Logbook</option>
+                  <option value="Estimated">Estimated</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Fuel Record</button>
+              </div>
+            </form>
+            <div id="fuelRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- STREAM 3: SOLID WASTE -->
+          <div id="cact-waste" class="cact-content hidden">
+            <form id="formCampusWaste" onsubmit="submitCampusWasteRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Waste Type *</label>
+                <select id="cWasteType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Food Waste">Food Waste</option>
+                  <option value="Paper">Paper & Cardboard</option>
+                  <option value="Plastic">Plastic</option>
+                  <option value="Metal">Metal</option>
+                  <option value="Glass">Glass</option>
+                  <option value="Mixed Waste">Mixed General Waste</option>
+                  <option value="Other">Other Waste</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Quantity (kg) *</label>
+                <input type="number" step="any" id="cWasteQty" required min="0" placeholder="e.g. 45000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Disposal Method *</label>
+                <select id="cWasteDisposal" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Composting">On-site Composting (Avoided Methane)</option>
+                  <option value="Recycling">Recycling (Avoided Material Impact)</option>
+                  <option value="Landfill">Municipal Landfill</option>
+                  <option value="Incineration">Incineration</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Period</label>
+                <select id="cWastePeriod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Annual">Annual Total</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Quality</label>
+                <select id="cWasteQuality" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Measured">Measured (Weighbridge)</option>
+                  <option value="Vendor manifest">Vendor Manifest</option>
+                  <option value="Estimated">Estimated</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Solid Waste Record</button>
+              </div>
+            </form>
+            <div id="cWasteRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- STREAM 4: WATER & STP -->
+          <div id="cact-water" class="cact-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Water Supply -->
+              <div class="bg-slate-50 p-4.5 rounded-xl border border-slate-200">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-1.5">
+                  <i data-lucide="droplet" class="w-4 h-4 text-blue-500"></i>
+                  Campus Water Consumption
+                </h3>
+                <form id="formCampusWater" onsubmit="submitCampusWaterRecord(event)" class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Water Source *</label>
+                    <select id="cWaterSource" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                      <option value="Municipal Water">Municipal Water Supply</option>
+                      <option value="Borewell">Borewell Extraction</option>
+                      <option value="Tanker">Private Water Tanker</option>
+                      <option value="Rainwater">Rainwater Harvesting</option>
+                      <option value="Other">Other Source</option>
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Quantity (kL) *</label>
+                      <input type="number" step="any" id="cWaterQty" required min="0" placeholder="e.g. 140000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Data Period</label>
+                      <select id="cWaterPeriod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                        <option value="Annual">Annual Total</option>
+                        <option value="Monthly">Monthly</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Water Supply Record</button>
+                </form>
+              </div>
+
+              <!-- Sewage Treatment Plant (STP) -->
+              <div class="bg-slate-50 p-4.5 rounded-xl border border-slate-200">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-1.5">
+                  <i data-lucide="waves" class="w-4 h-4 text-emerald-600"></i>
+                  Sewage Treatment Plant (STP)
+                </h3>
+                <form id="formCampusSTP" onsubmit="submitCampusSTPRecord(event)" class="space-y-3">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Wastewater Treated (kL) *</label>
+                      <input type="number" step="any" id="cStpQty" required min="0" placeholder="e.g. 110000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Treatment Method *</label>
+                      <select id="cStpMethod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                        <option value="SBR STP">SBR Central STP</option>
+                        <option value="MBBR STP">MBBR STP</option>
+                        <option value="Phytoremediation">Phytoremediation / Wetland</option>
+                        <option value="Septic">Septic System</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Recycled Water Reused (kL)</label>
+                      <input type="number" step="any" id="cStpReused" placeholder="e.g. 95000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">STP Electricity (kWh)</label>
+                      <input type="number" step="any" id="cStpElectricity" placeholder="e.g. 40000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                    </div>
+                  </div>
+                  <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save STP Record</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div id="cWaterRecordsList" class="overflow-x-auto"></div>
+            </div>
+          </div>
+
+          <!-- STREAM 5: TRANSPORT / FLEET -->
+          <div id="cact-transport" class="cact-content hidden">
+            <form id="formCampusFleet" onsubmit="submitCampusFleetRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Vehicle Category *</label>
+                <select id="cFleetCategory" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Bus">Bus</option>
+                  <option value="Car">Car</option>
+                  <option value="Van">Van</option>
+                  <option value="Tractor">Tractor</option>
+                  <option value="Tempo">Tempo</option>
+                  <option value="Ambulance">Ambulance</option>
+                  <option value="Two Wheeler">Two Wheeler</option>
+                  <option value="Electric Vehicle">Electric Vehicle (EV)</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Number of Vehicles</label>
+                <input type="number" id="cFleetNumVehicles" value="1" min="1" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Fuel Type</label>
+                <select id="cFleetFuelType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="CNG">CNG</option>
+                  <option value="Electricity">Electricity (EV)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Fuel Quantity (L) OR EV (kWh)</label>
+                <input type="number" step="any" id="cFleetFuelQty" required min="0" placeholder="e.g. 15000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Distance Travelled (km)</label>
+                <input type="number" step="any" id="cFleetDistance" placeholder="e.g. 45000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">EV Anti-Double-Counting</label>
+                <select id="cEvGridSafeguard" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="true">Included in Campus Electricity (Do Not Add to Scope 2)</option>
+                  <option value="false">Metered Separately</option>
+                </select>
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Fleet / Transport Record</button>
+              </div>
+            </form>
+            <div id="cFleetRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- STREAM 6: CANTEEN / KITCHEN (OPTIONAL) -->
+          <div id="cact-canteen" class="cact-content hidden">
+            <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 mb-4 text-xs text-amber-900">
+              <b>Canteen / Kitchen Activity:</b> Only complete this section if the campus operates dining facilities. Can be associated with a specific building if needed.
+            </div>
+            <form id="formCampusCanteen" onsubmit="submitCampusCanteenRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Canteen Name *</label>
+                <input type="text" id="cCanteenName" value="Main Dining Hall & Canteen" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Associated Building (Optional)</label>
+                <select id="cCanteenBuilding" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none"></select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Operating Days / Year</label>
+                <input type="number" id="cCanteenDays" value="280" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Meals Served / Day</label>
+                <input type="number" id="cCanteenMeals" value="2500" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">LPG Consumption (kg)</label>
+                <input type="number" step="any" id="cCanteenLpg" placeholder="e.g. 12000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Food Waste (kg)</label>
+                <input type="number" step="any" id="cCanteenFoodWaste" placeholder="e.g. 15000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Canteen Record</button>
+              </div>
+            </form>
+            <div id="cCanteenRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- STREAM 7: INDUSTRIAL / PROCESS -->
+          <div id="cact-industry" class="cact-content hidden">
+            <form id="formCampusIndustry" onsubmit="submitCampusIndustrialRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Process / Output Name</label>
+                <input type="text" id="cIndName" value="Finished Goods Output" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Production (Tonnes)</label>
+                <input type="number" step="any" id="cIndQty" value="1000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Direct Process CO2e (t)</label>
+                <input type="number" step="any" id="cIndEmissions" placeholder="e.g. 45" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Refrigerant Type</label>
+                <select id="cIndRefType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="R-410A">R-410A (GWP = 2088)</option>
+                  <option value="R-134a">R-134a (GWP = 1430)</option>
+                  <option value="R-32">R-32 (GWP = 675)</option>
+                  <option value="R-22">R-22 (GWP = 1810)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Refrigerant Leakage (kg)</label>
+                <input type="number" step="any" id="cIndRefLeak" placeholder="e.g. 25" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Industrial / HVAC Record</button>
+              </div>
+            </form>
+            <div id="cIndRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- NEGATIVE SECTION A: SOLAR PLANT -->
+          <div id="cact-solar" class="cact-content hidden">
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 mb-4 text-xs text-emerald-900">
+              <b>☀️ Solar Plant (Negative / Avoided Emissions):</b> Solar electricity generation is stored as a positive quantity and its grid displacement is classified as a negative footprint.
+            </div>
+            <form id="formCampusSolar" onsubmit="submitCampusSolarRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Installed Capacity (kWp) *</label>
+                <input type="number" step="any" id="cSolarCapacity" required min="0" placeholder="e.g. 500" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Annual Solar Generation (kWh) *</label>
+                <input type="number" step="any" id="cSolarGen" required min="0" placeholder="e.g. 720000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Solar Type</label>
+                <select id="cSolarType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Rooftop Solar PV">Rooftop Solar PV</option>
+                  <option value="Ground Mounted Solar PV">Ground Mounted Solar PV</option>
+                  <option value="Solar Thermal">Solar Thermal</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Installation Location</label>
+                <input type="text" id="cSolarLoc" value="Campus Academic & Hostel Rooftops" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Quality</label>
+                <select id="cSolarQuality" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Generation Meter">Generation Meter</option>
+                  <option value="Inverter Log">Inverter Portal Log</option>
+                  <option value="Estimated">Estimated</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Solar Generation Record</button>
+              </div>
+            </form>
+            <div id="cSolarRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- NEGATIVE SECTION B: WATER CONSERVATION -->
+          <div id="cact-water-cons" class="cact-content hidden">
+            <form id="formCampusWaterCons" onsubmit="submitCampusWaterConsRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Water Saved (kL) *</label>
+                <input type="number" step="any" id="cWcQty" required min="0" placeholder="e.g. 50000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Conservation Method *</label>
+                <select id="cWcMethod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Rainwater harvesting">Rainwater harvesting recharge pits</option>
+                  <option value="Low-flow fixtures">Low-flow aerator fixtures</option>
+                  <option value="Reuse of treated wastewater">Reuse of treated wastewater</option>
+                  <option value="Water recycling">Closed-loop water recycling</option>
+                  <option value="Other">Other method</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Data Quality</label>
+                <select id="cWcQuality" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Measured">Measured Flow Meters</option>
+                  <option value="Estimated">Engineering Estimate</option>
+                </select>
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Water Conservation Record</button>
+              </div>
+            </form>
+            <div id="cWcRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- NEGATIVE SECTION C: WATER BODIES -->
+          <div id="cact-water-bodies" class="cact-content hidden">
+            <form id="formCampusWaterBodies" onsubmit="submitCampusWaterBodyRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Number of Water Bodies *</label>
+                <input type="number" id="cWbCount" value="2" min="1" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Total Water Body Area (m²) *</label>
+                <input type="number" step="any" id="cWbArea" required min="0" placeholder="e.g. 15000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Water Body Type *</label>
+                <select id="cWbType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="Lake">Lake / Wetland Ecosystem</option>
+                  <option value="Pond">Natural Pond</option>
+                  <option value="Artificial Pond">Artificial Recharge Pond</option>
+                  <option value="Wetland">Constructed Wetland</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Water Body Conservation Record</button>
+              </div>
+            </form>
+            <div id="cWbRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- NEGATIVE SECTION D: ANIMALS / LIVESTOCK -->
+          <div id="cact-animals" class="cact-content hidden">
+            <div class="p-3 bg-slate-100 rounded-xl border border-slate-300 mb-4 text-xs text-slate-700">
+              <b>🐾 Animals / Livestock:</b> Informational census. Carbon reduction is only accounted for if a validated methane capture or biogas methodology is documented.
+            </div>
+            <form id="formCampusAnimals" onsubmit="submitCampusAnimalRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Animal Type *</label>
+                <input type="text" id="cAnType" value="Dairy Cattle" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Number of Animals *</label>
+                <input type="number" id="cAnCount" value="25" min="1" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Management Method</label>
+                <select id="cAnMethod" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                  <option value="On-site Manure Composting & Biogas">On-site Manure Composting & Biogas</option>
+                  <option value="Open Pasture">Open Pasture</option>
+                  <option value="Controlled Waste Digestion">Controlled Waste Digestion</option>
+                </select>
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Animal Record</button>
+              </div>
+            </form>
+            <div id="cAnRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+          <!-- NEGATIVE SECTION E: GARDENING / GREENERY -->
+          <div id="cact-greenery" class="cact-content hidden">
+            <form id="formCampusGreenery" onsubmit="submitCampusGreeneryRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4.5 rounded-xl border border-slate-200 mb-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Green Cover Area (m²) *</label>
+                <input type="number" step="any" id="cGreenArea" required min="0" placeholder="e.g. 180000" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Total Mature Tree Count *</label>
+                <input type="number" id="cGreenTrees" required min="0" placeholder="e.g. 2800" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Tree Species / Canopy</label>
+                <input type="text" id="cGreenSpecies" value="Neem, Teak, Peepal, Mango, Native evergreen" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+              </div>
+              <div class="flex items-end sm:col-span-3">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Save Greenery & Sequestration Record</button>
+              </div>
+            </form>
+            <div id="cGreenRecordsList" class="overflow-x-auto"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= 4. TAB: POPULATION DISTRIBUTION (BUILDING-WISE) ================= -->
+      <section id="tab-population-distribution" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Building-wise Population Distribution</h2>
+              <p class="text-xs text-slate-500">Allocate students, faculty, and staff across the defined campus buildings.</p>
+            </div>
+            <button onclick="saveBuildingPopulationDistribution()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Save Population Allocation</span>
+            </button>
+          </div>
+
+          <!-- Population Reconciliation Card -->
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+              <div class="p-3 bg-white rounded-xl border border-slate-200 text-center">
+                <span class="text-slate-500 font-bold block text-[10px] uppercase">Campus Total Population</span>
+                <span id="popReconcileTarget" class="text-xl font-extrabold text-slate-900">6,450</span>
+                <span class="text-[10px] text-slate-400 block">(Target Sum)</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-slate-200 text-center">
+                <span class="text-slate-500 font-bold block text-[10px] uppercase">Total Allocated Across Buildings</span>
+                <span id="popReconcileCurrent" class="text-xl font-extrabold text-emerald-800">6,450</span>
+                <span class="text-[10px] text-slate-400 block">(Sum of Building Allocations)</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-center">
+                <div id="popReconcileStatus" class="text-center font-bold text-emerald-700 flex items-center gap-1.5">
+                  <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+                  <span>Allocations perfectly match campus population!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Building Population Allocation Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl overflow-hidden">
+              <thead class="bg-slate-100 font-bold text-slate-700 uppercase">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Building Name</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Area (m²)</th>
+                  <th class="p-3">Students On-Campus</th>
+                  <th class="p-3">Students Off-Campus</th>
+                  <th class="p-3">Faculty</th>
+                  <th class="p-3">Non-Teaching</th>
+                  <th class="p-3 text-right">Building Total</th>
+                </tr>
+              </thead>
+              <tbody id="popDistributionTableBody" class="divide-y divide-slate-200 bg-white">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. TAB: CARBON ACCOUNTING RESULTS ================= -->
+      <section id="tab-carbon-accounting" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Carbon Accounting Audit Log (Positive Emissions)</h2>
+              <p class="text-xs text-slate-500">Atomic calculation audit trail mapping campus activity quantities to emissions using standardized emission factors.</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-96">
+            <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl">
+              <thead class="bg-slate-100 font-bold text-slate-700 uppercase sticky top-0">
+                <tr>
+                  <th class="p-2.5">Scope</th>
+                  <th class="p-2.5">Category</th>
+                  <th class="p-2.5">Activity Description</th>
+                  <th class="p-2.5">Quantity</th>
+                  <th class="p-2.5">EF</th>
+                  <th class="p-2.5">EF Source</th>
+                  <th class="p-2.5 text-right">Emissions (tCO2e)</th>
+                </tr>
+              </thead>
+              <tbody id="calculationsTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-emerald-600">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-emerald-900">Negative / Eligible Reduction Contributions Ledger</h2>
+              <p class="text-xs text-emerald-700">Dedicated tracking of verifiable carbon removals and avoided emission interventions with explicit baseline definitions.</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600 border border-emerald-200 rounded-xl">
+              <thead class="bg-emerald-50 font-bold text-emerald-900 uppercase">
+                <tr>
+                  <th class="p-2.5">Category</th>
+                  <th class="p-2.5">Activity & Intervention</th>
+                  <th class="p-2.5">Methodology & Baseline</th>
+                  <th class="p-2.5">Status</th>
+                  <th class="p-2.5 text-right">Avoided / Removed</th>
+                </tr>
+              </thead>
+              <tbody id="reductionsTableBody" class="divide-y divide-emerald-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. TAB: BUILDING ANALYTICS ================= -->
+      <section id="tab-building-analytics" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Building-wise Carbon Performance Leaderboard</h2>
+              <p class="text-xs text-slate-500">Benchmark and rank all buildings by total emissions, occupancy intensity, and area intensity.</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl">
+              <thead class="bg-slate-100 font-bold text-slate-700 uppercase">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Building</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Area (m²)</th>
+                  <th class="p-3">Pop.</th>
+                  <th class="p-3 text-right">Gross (tCO2e)</th>
+                  <th class="p-3 text-right">Reductions (tCO2e)</th>
+                  <th class="p-3 text-right">Net (tCO2e)</th>
+                  <th class="p-3 text-right">tCO2e / Person</th>
+                  <th class="p-3 text-right">kgCO2e / m²</th>
+                </tr>
+              </thead>
+              <tbody id="bldAnalyticsTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. TAB: GRAPHICAL INSIGHTS ================= -->
+      <section id="tab-visualizations" class="tab-content hidden flex flex-col gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="glass-card rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-sm mb-3">Emissions Breakdown by Scope</h3>
+            <div class="h-64 relative">
+              <canvas id="scopeDonutChartTab"></canvas>
+            </div>
+          </div>
+          <div class="glass-card rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-sm mb-3">Building-wise Gross vs Net Emissions</h3>
+            <div class="h-64 relative">
+              <canvas id="buildingBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 8. TAB: WHAT-IF SIMULATOR ================= -->
+      <section id="tab-what-if" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Interactive Decarbonization What-If Simulator</h2>
+              <p class="text-xs text-slate-500">Simulate mitigation scenarios without mutating underlying campus assessment records.</p>
+            </div>
+            <button onclick="saveCurrentScenario()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">Save Scenario</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-7 flex flex-col gap-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>⚡ Campus Energy Efficiency Improvement (%)</span>
+                  <span id="val_energy_eff" class="text-emerald-700">15%</span>
+                </div>
+                <input type="range" min="0" max="50" value="15" id="slider_energy_eff" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>☀️ Additional Rooftop Solar PV (+kWp)</span>
+                  <span id="val_solar_add" class="text-emerald-700">+300 kW</span>
+                </div>
+                <input type="range" min="0" max="2000" step="50" value="300" id="slider_solar_add" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>🚗 Fleet Electrification / EV Transition (%)</span>
+                  <span id="val_ev_trans" class="text-emerald-700">40%</span>
+                </div>
+                <input type="range" min="0" max="100" value="40" id="slider_ev_trans" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>🗑️ Waste Composting & Recycling Diversion (%)</span>
+                  <span id="val_waste_div" class="text-emerald-700">50%</span>
+                </div>
+                <input type="range" min="0" max="100" value="50" id="slider_waste_div" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>💧 Water Conservation & Pumping Efficiency (%)</span>
+                  <span id="val_water_div" class="text-emerald-700">20%</span>
+                </div>
+                <input type="range" min="0" max="50" value="20" id="slider_water_div" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>🌳 Additional Native Tree Plantations (Trees)</span>
+                  <span id="val_trees_add" class="text-emerald-700">+500 Trees</span>
+                </div>
+                <input type="range" min="0" max="3000" step="100" value="500" id="slider_trees_add" oninput="runLiveSimulation()" class="w-full accent-emerald-600 cursor-pointer">
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 flex flex-col justify-between bg-emerald-950 text-white p-6 rounded-xl shadow-md">
+              <div>
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Projected Scenario Impact</span>
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span id="simPotentialSavings" class="text-4xl font-extrabold text-emerald-300">0.00</span>
+                  <span class="text-sm font-semibold text-emerald-400">tCO2e saved</span>
+                </div>
+                <p id="simPotentialPct" class="text-sm font-bold text-emerald-200 mt-1">0.0% Reduction from Baseline</p>
+
+                <div class="mt-6 space-y-2.5 text-xs">
+                  <div class="flex justify-between border-b border-emerald-800 pb-1.5">
+                    <span class="text-emerald-300">Baseline Gross:</span>
+                    <span id="simBaseGross" class="font-bold">0.00 tCO2e</span>
+                  </div>
+                  <div class="flex justify-between border-b border-emerald-800 pb-1.5">
+                    <span class="text-emerald-300">Scenario Gross:</span>
+                    <span id="simScenGross" class="font-bold text-amber-300">0.00 tCO2e</span>
+                  </div>
+                  <div class="flex justify-between border-b border-emerald-800 pb-1.5">
+                    <span class="text-emerald-300">Scenario Reductions:</span>
+                    <span id="simScenRed" class="font-bold text-emerald-400">-0.00 tCO2e</span>
+                  </div>
+                  <div class="flex justify-between pt-1">
+                    <span class="text-emerald-300 font-bold">New Net Carbon Footprint:</span>
+                    <span id="simScenNet" class="font-extrabold text-cyan-300 text-sm">0.00 tCO2e</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 9. TAB: RECOMMENDATIONS ================= -->
+      <section id="tab-recommendations" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Intelligent Carbon Hotspot Recommendations</h2>
+            <p class="text-xs text-slate-500">Prioritized mitigation interventions and nature-based solutions tailored to your operational emission hotspots.</p>
+          </div>
+          <div id="recommendationsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- ================= 10. TAB: BENCHMARKING ================= -->
+      <section id="tab-benchmarks" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Cross-Campus & Historical Benchmarking</h2>
+            <p class="text-xs text-slate-500">Compare carbon intensity across campuses without relying solely on total emissions.</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl">
+              <thead class="bg-slate-100 font-bold text-slate-700 uppercase">
+                <tr>
+                  <th class="p-3">Campus Name</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Population</th>
+                  <th class="p-3">Area (Acres)</th>
+                  <th class="p-3 text-right">Gross (tCO2e)</th>
+                  <th class="p-3 text-right">Net (tCO2e)</th>
+                  <th class="p-3 text-right">tCO2e/person</th>
+                  <th class="p-3 text-right">Renewable %</th>
+                </tr>
+              </thead>
+              <tbody id="benchmarkTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 11. TAB: EMISSION FACTORS ================= -->
+      <section id="tab-factors" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Recognized Emission Factors Reference Library</h2>
+            <p class="text-xs text-slate-500">Standardized baseline factors grounded in CEA India (v19), IPCC Guidelines, DEFRA, and US EPA.</p>
+          </div>
+          <div class="overflow-x-auto max-h-96">
+            <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl">
+              <thead class="bg-slate-100 font-bold text-slate-700 uppercase sticky top-0">
+                <tr>
+                  <th class="p-2.5">Category</th>
+                  <th class="p-2.5">Activity</th>
+                  <th class="p-2.5">Unit</th>
+                  <th class="p-2.5">Factor</th>
+                  <th class="p-2.5">Scope</th>
+                  <th class="p-2.5">Source</th>
+                  <th class="p-2.5">Year</th>
+                </tr>
+              </thead>
+              <tbody id="factorsTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 12. TAB: REPORT STUDIO ================= -->
+      <section id="tab-reports" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Professional Multi-Format Report Studio</h2>
+            <p class="text-xs text-slate-500">Generate auditable PDF reports, formatted multi-tab Excel workbooks, and CSV exports.</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="p-5 border border-slate-200 rounded-2xl flex flex-col justify-between hover:border-emerald-500 transition">
+              <div>
+                <span class="text-red-500 font-bold text-xs uppercase flex items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4"></i> Executive PDF Report</span>
+                <h4 class="font-bold text-slate-900 mt-2 text-sm">Comprehensive Audit Report</h4>
+                <p class="text-xs text-slate-500 mt-1">18 section complete greenhouse gas assessment with 3-pillar breakdown and building rankings.</p>
+              </div>
+              <button onclick="downloadReport('pdf')" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF
+              </button>
+            </div>
+
+            <div class="p-5 border border-slate-200 rounded-2xl flex flex-col justify-between hover:border-emerald-500 transition">
+              <div>
+                <span class="text-emerald-600 font-bold text-xs uppercase flex items-center gap-1.5"><i data-lucide="sheet" class="w-4 h-4"></i> Multi-Tab Excel Workbook</span>
+                <h4 class="font-bold text-slate-900 mt-2 text-sm">Full Data & Calculation Matrix</h4>
+                <p class="text-xs text-slate-500 mt-1">Multi-sheet .xlsx workbook (Summary, Building Performance, Gross Calculations, Reductions Ledger).</p>
+              </div>
+              <button onclick="downloadReport('excel')" class="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Excel
+              </button>
+            </div>
+
+            <div class="p-5 border border-slate-200 rounded-2xl flex flex-col justify-between hover:border-emerald-500 transition">
+              <div>
+                <span class="text-blue-600 font-bold text-xs uppercase flex items-center gap-1.5"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Tabular CSV Export</span>
+                <h4 class="font-bold text-slate-900 mt-2 text-sm">Raw Building Data</h4>
+                <p class="text-xs text-slate-500 mt-1">Flat CSV file for integration with BI tools, Python data pipelines, and ERP systems.</p>
+              </div>
+              <button onclick="downloadReport('csv')" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 13. TAB: IMPORT / EXPORT ================= -->
+      <section id="tab-exchange" class="tab-content hidden flex flex-col gap-6">
+        <div class="glass-card rounded-2xl p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Bulk Data Importer & Template Generator</h2>
+            <p class="text-xs text-slate-500">Download pre-structured CSV templates and ingest bulk utility or activity records.</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <h3 class="font-bold text-sm text-slate-900 mb-2">1. Download CSV Templates</h3>
+              <p class="text-xs text-slate-500 mb-4">Choose a module template to populate historical data offline:</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="downloadTemplate('energy')" class="bg-white border border-slate-300 hover:border-emerald-500 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-sm">⚡ Energy Template</button>
+                <button onclick="downloadTemplate('transport')" class="bg-white border border-slate-300 hover:border-emerald-500 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-sm">🚗 Transport Template</button>
+                <button onclick="downloadTemplate('waste')" class="bg-white border border-slate-300 hover:border-emerald-500 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-sm">🗑️ Waste Template</button>
+                <button onclick="downloadTemplate('water')" class="bg-white border border-slate-300 hover:border-emerald-500 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-sm">💧 Water Template</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <h3 class="font-bold text-sm text-slate-900 mb-2">2. Upload & Validate CSV Data</h3>
+              <form id="formCsvUpload" onsubmit="handleCsvUpload(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Target Module</label>
+                  <select id="importModuleType" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs outline-none">
+                    <option value="energy">Energy & Electricity</option>
+                    <option value="transport">Transport & Fleet</option>
+                    <option value="waste">Solid Waste</option>
+                    <option value="water">Water & Wastewater</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">CSV File</label>
+                  <input type="file" id="csvFileInput" accept=".csv" required class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs outline-none">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs shadow transition">Ingest & Calculate Records</button>
+                <div id="importResult" class="text-xs mt-2"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= 6-SECTION CREATE CAMPUS MODAL (FIRST-SCREEN & WORKFLOW) ================= -->
+  <div id="newCampusModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-7 shadow-2xl border border-slate-100 relative max-h-[94vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-200">
+            <i data-lucide="map-pin" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-slate-900">Create New Campus</h3>
+            <p class="text-xs text-slate-500">Universal Campus Carbon Footprint Assessment & Management Platform</p>
+          </div>
+        </div>
+        <button onclick="closeNewCampusModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Campus Creation Form (Structured 6 Sections) -->
+      <form id="createCampusForm" onsubmit="handleCreateCampusSubmit(event)" class="space-y-6">
+        
+        <!-- SECTION 1: BASIC CAMPUS INFORMATION -->
+        <div class="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <span class="text-xs font-black text-emerald-800 uppercase tracking-wider block">1. Basic Campus Information</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Campus Name *</label>
+              <input type="text" id="wizCampusName" value="Christ University – Kengeri Campus" required class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold outline-none focus:border-emerald-500 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Campus Type *</label>
+              <select id="wizCampusType" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold outline-none focus:border-emerald-500 transition">
+                <option value="University / College" selected>University / College</option>
+                <option value="School">School</option>
+                <option value="Hospital">Hospital</option>
+                <option value="Apartment / Residential Society">Apartment / Residential Society</option>
+                <option value="Industry">Industry</option>
+                <option value="Corporate Campus">Corporate Campus</option>
+                <option value="Research Institution">Research Institution</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Location *</label>
+              <input type="text" id="wizCity" value="Bengaluru, Karnataka, India" required class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-emerald-500 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Assessment Year *</label>
+              <input type="number" id="wizReportingYear" value="2025" required class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-emerald-500 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Operating Days / Year</label>
+              <input type="number" id="wizOperatingDays" value="280" required min="1" max="365" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-emerald-500 transition">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: CAMPUS AREA & BUILT-UP AREA -->
+        <div class="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <span class="text-xs font-black text-emerald-800 uppercase tracking-wider block">2. Campus Area & Built-up Area</span>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Total Campus Area *</label>
+              <input type="number" step="any" id="wizCampusArea" value="78.5" oninput="updateCampusAreaCalculations()" required min="0.1" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Area Unit</label>
+              <select id="wizCampusAreaUnit" onchange="updateCampusAreaCalculations()" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold outline-none">
+                <option value="Acres" selected>acres (1 acre = 4046.856 m²)</option>
+                <option value="m²">m² (Square Meters)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Built-up Percentage (%) *</label>
+              <div class="flex items-center gap-2">
+                <input type="number" step="any" id="wizBuiltUpPct" value="55" oninput="updateCampusAreaCalculations()" required min="1" max="100" class="w-20 bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-black text-emerald-800 outline-none">
+                <span class="text-xs font-bold text-slate-500">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Live Calculation Display -->
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-emerald-900 font-bold block">Total Campus Area:</span>
+              <span id="dispTotalAreaStr" class="font-extrabold text-emerald-950 text-sm">78.50 acres (317,678 m²)</span>
+            </div>
+            <div class="sm:text-right">
+              <span class="text-emerald-900 font-bold block">Calculated Built-up Area (Auto-calculated):</span>
+              <span id="dispBuiltUpAreaStr" class="font-extrabold text-emerald-950 text-sm">43.18 acres (174,750 m²)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: CAMPUS POPULATION / CAPACITY -->
+        <div class="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <span class="text-xs font-black text-emerald-800 uppercase tracking-wider block">3. Campus Population / Capacity</span>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Students — On Campus</label>
+              <input type="number" id="wizPopStudentsOn" value="900" oninput="updateCampusPopCalculations()" min="0" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Students — Off Campus</label>
+              <input type="number" id="wizPopStudentsOff" value="5100" oninput="updateCampusPopCalculations()" min="0" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Faculty</label>
+              <input type="number" id="wizPopFaculty" value="300" oninput="updateCampusPopCalculations()" min="0" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Non-Teaching Staff</label>
+              <input type="number" id="wizPopNonTeaching" value="150" oninput="updateCampusPopCalculations()" min="0" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold outline-none">
+            </div>
+          </div>
+
+          <!-- Population Auto-Calculated Summary -->
+          <div class="bg-white border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-2 text-xs text-center">
+            <div>
+              <span class="text-slate-400 font-bold block text-[10px] uppercase">Total Students</span>
+              <span id="dispTotalStudents" class="font-extrabold text-slate-800">6,000</span>
+            </div>
+            <div>
+              <span class="text-slate-400 font-bold block text-[10px] uppercase">Total Staff</span>
+              <span id="dispTotalStaff" class="font-extrabold text-slate-800">450</span>
+            </div>
+            <div class="bg-emerald-50 rounded-lg p-1">
+              <span class="text-emerald-800 font-bold block text-[10px] uppercase">TOTAL POPULATION</span>
+              <span id="dispTotalPop" class="font-black text-emerald-900 text-sm">6,450</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: NUMBER OF BUILDINGS -->
+        <div class="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-black text-emerald-800 uppercase tracking-wider block">4. Number of Buildings</span>
+              <p class="text-[11px] text-slate-500">Exactly this number of building records will be generated for inventory.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-bold text-slate-700">Number of Buildings:</label>
+              <input type="number" id="wizNumBuildings" value="19" min="1" max="50" onchange="renderNewCampusBuildingRows()" class="w-16 bg-white border-2 border-emerald-500 rounded-xl p-1.5 text-center text-xs font-black text-emerald-900 outline-none shadow-sm">
+            </div>
+          </div>
+
+          <!-- Dynamic Buildings Preview List -->
+          <div id="wizBuildingsListPreview" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <!-- Dynamically populated rows -->
+          </div>
+        </div>
+
+        <!-- SECTION 5: NEGATIVE CARBON FOOTPRINT ACTIVITIES CHECKLIST -->
+        <div class="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <div>
+            <span class="text-xs font-black text-emerald-800 uppercase tracking-wider block">5. Negative Carbon Footprint / Reduction Activities</span>
+            <p class="text-[11px] text-slate-500">Select applicable activities. Only selected categories will appear in the data entry studio.</p>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" id="chkSolarPlant" checked class="w-4 h-4 accent-emerald-600 rounded">
+              <span class="font-bold text-slate-800">☀️ Solar Plant</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" id="chkWaterCons" class="w-4 h-4 accent-emerald-600 rounded">
+              <span class="font-bold text-slate-800">💧 Water Conservation</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" id="chkWaterBodies" checked class="w-4 h-4 accent-emerald-600 rounded">
+              <span class="font-bold text-slate-800">🌊 Water Bodies</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" id="chkAnimals" class="w-4 h-4 accent-emerald-600 rounded">
+              <span class="font-bold text-slate-800">🐾 Animals / Livestock</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" id="chkGardening" checked class="w-4 h-4 accent-emerald-600 rounded">
+              <span class="font-bold text-slate-800">🌳 Gardening / Greenery</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- SECTION 6: CREATE CAMPUS SUBMIT BUTTON -->
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeNewCampusModal()" class="text-slate-600 hover:text-slate-900 px-4 py-2.5 rounded-xl text-xs font-bold transition">Cancel</button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-black shadow-md shadow-emerald-200 transition flex items-center gap-2">
+            <span>CREATE CAMPUS</span>
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Controller Scripts with Cache Buster -->
+  <script src="/static/js/app.js?v=2.5"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+building_id,building_code,name,building_type,floors,built_up_area_sqm,occupancy,gross_tco2e,reductions_tco2e,net_tco2e,co2e_per_person,co2e_per_sqm,net_co2e_per_sqm,scope1_tco2e,scope2_tco2e,scope3_tco2e
+2,ENG-02,Engineering Block II (CSE & ECE),Academic,5,16200.0,1400,175.42,0,175.42,0.1253,0.010828,0.010828,0.0,175.42,0
+1,ENG-01,Engineering Block I (Civil & Mechanical),Academic,5,14500.0,1200,158.9776,0,158.9776,0.1325,0.010964,0.010964,8.6176,150.36,0
+4,MGMT-01,School of Business & Management,Academic,4,11500.0,900,139.748,0,139.748,0.1553,0.012152,0.012152,43.088,96.66,0
+11,HST-03,Carmel Hall Girls Hostel,Hostel,6,13200.0,750,137.4976,0,137.4976,0.1833,0.010416,0.010416,8.6176,128.88,0
+9,HST-01,St. Kuriakose Boys Hostel,Hostel,6,12500.0,650,130.3376,0,130.3376,0.2005,0.010427,0.010427,8.6176,121.72,0
+12,HST-04,Mother Teresa Girls Hostel,Hostel,6,12800.0,700,125.3,0,125.3,0.179,0.009789,0.009789,0.0,125.3,0
+7,LIB-01,Central Knowledge & Library Center,Academic,3,7400.0,500,114.56,0,114.56,0.2291,0.015481,0.015481,0.0,114.56,0
+10,HST-02,Devadan Hall Boys Hostel,Hostel,6,11800.0,600,110.98,0,110.98,0.185,0.009405,0.009405,0.0,110.98,0
+6,RES-01,Center for Research & Innovation,Academic,3,6200.0,350,100.24,0,100.24,0.2864,0.016168,0.016168,0.0,100.24,0
+3,ARCH-01,School of Architecture & Planning,Academic,4,9800.0,600,82.34,0,82.34,0.1372,0.008402,0.008402,0.0,82.34,0
+13,QTR-01,Staff & Faculty Residential Quarters,Residential,4,8200.0,200,78.76,0,78.76,0.3938,0.009605,0.009605,0.0,78.76,0
+5,ARTS-01,Social Sciences & Humanities Block,Academic,4,8500.0,700,68.02,0,68.02,0.0972,0.008002,0.008002,0.0,68.02,0
+8,AUD-01,Main Auditorium & Cultural Complex,Academic,2,5800.0,800,58.7376,0,58.7376,0.0734,0.010127,0.010127,8.6176,50.12,0

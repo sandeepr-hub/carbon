@@ -1,0 +1,11 @@
+building_id,building_code,name,building_type,floors,built_up_area_sqm,occupancy,students_on_campus,students_off_campus,faculty_count,non_teaching_count,gross_tco2e,reductions_tco2e,net_tco2e,co2e_per_person,co2e_per_sqm,net_co2e_per_sqm,scope1_tco2e,scope2_tco2e,scope3_tco2e
+44,APX-01,Academic Wing 1,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+45,APX-02,Academic Wing 2,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+46,APX-03,Academic Wing 3,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+47,APX-04,Academic Wing 4,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+48,APX-05,Academic Wing 5,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+49,APX-06,Academic Wing 6,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+50,APX-07,Academic Wing 7,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+51,APX-08,Academic Wing 8,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+52,APX-09,Academic Wing 9,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
+53,APX-10,Academic Wing 10,Academic,3,8093.7,325,50,250,15,10,0,0,0.0,0.0,0.0,0.0,0,0,0
