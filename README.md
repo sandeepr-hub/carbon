@@ -2,6 +2,8 @@
 ## Universal Campus Carbon Footprint Assessment & Management Platform
 ### Positive, Negative & Net Carbon Accounting Architecture
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sandeepr-hub/carbonfootprint)
+
 ---
 
 ## 1. Overview & Vision
@@ -108,25 +110,67 @@
 
 ---
 
-## 5. How to Run the Platform
+## 5. How to Run Locally
 
 ```bash
-# 1. Navigate to project directory
-cd "C:\Users\Sandeep Rajendran\.gemini\antigravity\scratch\campus_carbon"
+# 1. Clone repository
+git clone https://github.com/sandeepr-hub/carbonfootprint.git
+cd carbonfootprint
 
-# 2. Run the application server
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the application server
 python run_server.py
+# Or with uvicorn: uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
-# 3. Open your browser
+# 4. Open your browser
 # Dashboard: http://127.0.0.1:8000
 # API Docs:  http://127.0.0.1:8000/docs
 ```
 
 ---
 
-## 6. Verification & Automated Tests
-To run the automated verification test suite:
+## 6. Deploy to Render (Cloud Hosting)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sandeepr-hub/carbonfootprint)
+
+### Option A: One-Click Blueprint (Recommended)
+1. Push this repository to GitHub:
+   ```bash
+   git push origin main
+   ```
+2. Log in to your [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** &rarr; **Blueprint**.
+4. Connect the repository `sandeepr-hub/carbonfootprint`.
+5. Render reads [`render.yaml`](file:///c:/Users/Sandeep%20Rajendran/.gemini/antigravity/scratch/campus_carbon/render.yaml) automatically:
+   - **Service Type**: Web Service (`campus-carbon`)
+   - **Runtime**: Python
+   - **Plan**: Free
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Health Check**: `/api/health`
+6. Click **Apply** &mdash; your app will deploy and be accessible at `https://campus-carbon-xxxx.onrender.com`.
+
+### Option B: Manual Web Service
+1. In Render, select **New +** &rarr; **Web Service**.
+2. Select **Build and deploy from a Git repository** and pick `sandeepr-hub/carbonfootprint`.
+3. Configure the settings:
+   - **Name**: `campus-carbon`
+   - **Language / Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: `Free`
+4. Expand **Advanced**:
+   - Environment Variable: `PYTHON_VERSION` = `3.10.12`
+   - Health Check Path: `/api/health`
+5. Click **Create Web Service**.
+
+---
+
+## 7. Automated Verification
+
+Run health check:
 ```bash
-python "C:\Users\Sandeep Rajendran\.gemini\antigravity\brain\a08bdea3-063d-46d8-8ef7-c96a49a2aeed\scratch\run_tests.py"
-python "C:\Users\Sandeep Rajendran\.geminintigravity\brain\a08bdea3-063d-46d8-8ef7-c96a49a2aeed\scratch\test_api_runner.py"
+python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); print(client.get('/api/health').json())"
 ```
